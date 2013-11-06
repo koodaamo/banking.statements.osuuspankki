@@ -50,9 +50,16 @@ class OPCsvStatementParser(CsvStatementParser):
         # Change decimalsign from , to .
         line[2] = line[2].replace(',', '.')
 
-        # Set transaction type
+        # Save transaction type first & then map it to OFX ones
+        original_types = line[4]
         line[4] = TRANSACTION_TYPES[line[4]]
 
         # fill statement line according to mappings
         sl = super(OPCsvStatementParser, self).parse_record(line)
+
+        def xntypes(obj):
+           "KeepTransactionTypesStatementLine compliance"
+
+        sl._xntypes = original_types
+        sl.xntypes = xntypes
         return sl
