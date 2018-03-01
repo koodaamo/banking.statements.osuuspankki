@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.3.3rc0'
+version = '1.3.4rc0'
 
 setup(name='banking.statements.osuuspankki',
       version=version,
