@@ -22,7 +22,8 @@ TRANSACTION_TYPES = {
    "VERONPALAUTUS": "DIRECTDEP",
    "PALKKA": "DIRECTDEP",
    "ARVOPAPERI": "OTHER",
-   "TALLETUSAUTOM.": "XFER"
+   "TALLETUSAUTOM.": "XFER",
+   "LAINAAN": "FEE"
 }
 
 #   Other types available: 'CREDIT', 'DEBIT', 'INT', 'DIV', 'FEE', 'DEP',
