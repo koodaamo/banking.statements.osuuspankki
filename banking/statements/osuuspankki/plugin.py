@@ -1,26 +1,42 @@
 # -*- encoding: utf-8 -*-
-import sys
-import csv
-import decimal
-from importlib import import_module
-from io import StringIO
+from ofxstatement.plugin import Plugin
+from .parser import OPCsvStatementParser, OPCsvStatementParser2021v1, SIGNATURES, SIGNATURES_2021v1
 
-from ofxstatement.plugin import Plugin, PluginNotRegistered
-from .parser import OPCsvStatementParser, SIGNATURES
 
 class OPPlugin(Plugin):
     "Suomen Osuuspankki / Finnish Osuuspankki"
 
     def get_parser(self, fin):
-        f = open(fin, "r", encoding='iso-8859-1')
-        signature = f.readline().strip()
-        f.seek(0)
+        encoding = 'iso-8859-1'
+        signature = self.get_signature(fin, encoding)
+
+        if signature.startswith('ï»¿'):
+            # Switch to UTF-8 with BOM
+            encoding = 'utf-8-sig'
+            signature = self.get_signature(fin, encoding)
+
+        f = open(fin, "r", encoding=encoding)
+
         if signature in SIGNATURES:
-            parser = OPCsvStatementParser(f)
-            parser.statement.account_id = self.settings['account']
-            parser.statement.currency = self.settings['currency']
-            parser.statement.bank_id = self.settings.get('bank', 'Osuuspankki')
-            return parser
+            return self.with_settings(OPCsvStatementParser(f))
+
+        if signature in SIGNATURES_2021v1:
+            return self.with_settings(OPCsvStatementParser2021v1(f))
+
+        f.close()
 
         # no plugin with matching signature was found
-        raise Exception("No suitable Osuuspankki parser found for this statement file.")
+        raise Exception(
+            "No suitable Osuuspankki parser found for this statement file.")
+
+    def get_signature(self, fin, encoding):
+        with open(fin, "r", encoding=encoding) as f:
+            signature = f.readline().strip()
+        return signature
+
+    def with_settings(self, parser):
+        parser.statement.account_id = self.settings.get(
+            'account', "FIVVXXXXYYYYZZZZWW")
+        parser.statement.currency = self.settings.get('currency', "EUR")
+        parser.statement.bank_id = self.settings.get('bank', 'Osuuspankki')
+        return parser
